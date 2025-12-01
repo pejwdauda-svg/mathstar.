@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Math & English Quiz</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background: linear-gradient(135deg, #6a11cb, #2575fc);
+      color: #fff;
+      max-width: 600px;
+      margin: 40px auto;
+      padding: 30px 25px;
+      border-radius: 15px;
+      text-align: center;
+    }
+    input, select, button {
+      padding: 10px;
+      margin: 10px;
+      width: 80%;
+      max-width: 300px;
+      font-size: 16px;
+    }
+    #feedback.correct { color: lightgreen; }
+    #feedback.wrong { color: red; }
+    #english-section {
+      background: rgba(255,255,255,0.1);
+      padding: 20px;
+      margin-top: 40px;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Math & English Quiz</h1>
+
+<!-- MATH SECTION -->
+<div id="start-section">
+  <label>Times Table:
+    <select id="table-select">
+      <option value="2">2 Times Table</option>
+      <option value="3">3 Times Table</option>
+      <option value="4">4 Times Table</option>
+      <option value="5">5 Times Table</option>
+      <option value="6">6 Times Table</option>
+      <option value="7">7 Times Table</option>
+      <option value="8">8 Times Table</option>
+      <option value="9">9 Times Table</option>
+      <option value="10">10 Times Table</option>
+      <option value="11">11 Times Table</option>
+      <option value="12">12 Times Table</option>
+    </select>
+  </label><br/>
+  <label>Operation:
+    <select id="operation-select">
+      <option value="×">Multiplication</option>
+      <option value="+">Addition</option>
+      <option value="-">Subtraction</option>
+      <option value="÷">Division</option>
+    </select>
+  </label><br/>
+  <label>Difficulty:
+    <select id="difficulty-select">
+      <option value="5">Easy (5 questions)</option>
+      <option value="10" selected>Medium (10 questions)</option>
+      <option value="20">Hard (20 questions)</option>
+    </select>
+  </label><br/>
+  <button id="start-btn">Start Math Quiz</button>
+</div>
+
+<div id="quiz-section" style="display:none;">
+  <div id="question"></div>
+  <input type="number" id="answer-input" placeholder="Enter your answer" />
+  <button id="submit-btn">Submit</button>
+  <div id="feedback"></div>
+</div>
+
+<div id="scoreboard" style="display:none;"></div>
+
+<!-- ENGLISH SECTION -->
+<div id="english-section">
+  <h2>📝 English Typing Practice</h2>
+  <div id="englishPrompt"></div>
+  <input type="text" id="englishInput" placeholder="Type the sentence here..." />
+  <button id="englishSubmit">Check</button>
+  <div id="englishFeedback"></div>
+  <button onclick="restartEnglish()">🔁 Restart English</button>
+</div>
+
+<script>
+  // Math Quiz Variables
+  const tableSelect = document.getElementById('table-select');
+  const difficultySelect = document.getElementById('difficulty-select');
+  const operationSelect = document.getElementById('operation-select');
+  const startBtn = document.getElementById('start-btn');
+  const quizSection = document.getElementById('quiz-section');
+  const startSection = document.getElementById('start-section');
+  const questionDiv = document.getElementById('question');
+  const answerInput = document.getElementById('answer-input');
+  const submitBtn = document.getElementById('submit-btn');
+  const feedbackDiv = document.getElementById('feedback');
+  const scoreboardDiv = document.getElementById('scoreboard');
+
+  let timesTable = 2, numQuestions = 10, currentQuestion = 0, score = 0, questions = [], selectedOperation = '×';
+
+  startBtn.addEventListener('click', () => {
+    timesTable = parseInt(tableSelect.value);
+    numQuestions = parseInt(difficultySelect.value);
+    selectedOperation = operationSelect.value;
+    startQuiz();
+  });
+
+  submitBtn.addEventListener('click', checkAnswer);
+  answerInput.addEventListener('keyup', e => { if (e.key === 'Enter') checkAnswer(); });
+
+  function startQuiz() {
+    startSection.style.display = 'none';
+    quizSection.style.display = 'block';
+    currentQuestion = 0;
+    score = 0;
+    questions = [];
+
+    for (let i = 0; i < numQuestions; i++) {
+      let a, b;
+      if (selectedOperation === '×') {
+        a = timesTable;
+        b = Math.floor(Math.random() * 12) + 1;
+      } else if (selectedOperation === '+') {
+        a = Math.floor(Math.random() * 50);
+        b = Math.floor(Math.random() * 50);
+      } else if (selectedOperation === '-') {
+        a = Math.floor(Math.random() * 50) + 1;
+        b = Math.floor(Math.random() * a) + 1;
+      } else if (selectedOperation === '÷') {
+        b = Math.floor(Math.random() * 12) + 1;
+        const result = Math.floor(Math.random() * 12) + 1;
+        a = b * result;
+      }
+      questions.push({ a, b });
+    }
+
+    showQuestion();
+  }
+
+  function showQuestion() {
+    if (currentQuestion < numQuestions) {
+      const q = questions[currentQuestion];
+      questionDiv.textContent = `What is ${q.a} ${selectedOperation} ${q.b}?`;
+      answerInput.value = '';
+      answerInput.focus();
+    } else {
+      quizSection.style.display = 'none';
+      scoreboardDiv.style.display = 'block';
+      scoreboardDiv.innerHTML = `✅ You scored ${score} / ${numQuestions} <br><br><button onclick="location.reload()">Play Again</button>`;
+    }
+  }
+
+  function checkAnswer() {
+    const userAnswer = parseFloat(answerInput.value);
+    const q = questions[currentQuestion];
+    let correctAnswer;
+
+    switch (selectedOperation) {
+      case '×': correctAnswer = q.a * q.b; break;
+      case '+': correctAnswer = q.a + q.b; break;
+      case '-': correctAnswer = q.a - q.b; break;
+      case '÷': correctAnswer = q.a / q.b; break;
+    }
+
+    if (userAnswer === correctAnswer) {
+      feedbackDiv.textContent = "✅ Correct!";
+      feedbackDiv.className = 'correct';
+      score++;
+    } else {
+      feedbackDiv.textContent = `❌ Wrong! Answer was ${correctAnswer}`;
+      feedbackDiv.className = 'wrong';
+    }
+
+    currentQuestion++;
+    setTimeout(() => {
+      feedbackDiv.textContent = "";
+      showQuestion();
+    }, 1500);
+  }
+
+  // English Typing Practice
+  const englishSentences = [
+    "The cat sat on the mat.",
+    "Learning is fun with practice.",
+    "I enjoy reading books every day.",
+    "The quick brown fox jumps over the lazy dog.",
+    "Please write exactly what you see here.",
+    "Today is a beautiful day to learn."
+  ];
+
+  let currentSentenceIndex = 0;
+  const englishPrompt = document.getElementById('englishPrompt');
+  const englishInput = document.getElementById('englishInput');
+  const englishSubmit = document.getElementById('englishSubmit');
+  const englishFeedback = document.getElementById('englishFeedback');
+
+  function showNewEnglishSentence() {
+    englishInput.value = "";
+    englishFeedback.textContent = "";
+    englishPrompt.textContent = englishSentences[currentSentenceIndex];
+  }
+
+  englishSubmit.addEventListener('click', () => {
+    const userText = englishInput.value.trim();
+    const correctText = englishPrompt.textContent.trim();
+
+    if (userText === correctText) {
+      englishFeedback.textContent = "✅ Correct!";
+      englishFeedback.style.color = "lightgreen";
+      currentSentenceIndex++;
+      if (currentSentenceIndex < englishSentences.length) {
+        setTimeout(showNewEnglishSentence, 1500);
+      } else {
+        englishFeedback.textContent = "🎉 You completed all sentences!";
+      }
+    } else {
+      englishFeedback.textContent = "❌ Try again!";
+      englishFeedback.style.color = "red";
+    }
+  });
+
+  function restartEnglish() {
+    currentSentenceIndex = 0;
+    showNewEnglishSentence();
+  }
+
+  // Load first sentence
+  showNewEnglishSentence();
+</script>
+</body>
+</html>
+
